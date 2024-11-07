@@ -1,4 +1,4 @@
-/*! choices.js v11.0.2 | © 2024 Josh Johnson | https://github.com/jshjohnson/Choices#readme */
+/*! choices.js v11.0.3 | © 2024 Josh Johnson | https://github.com/jshjohnson/Choices#readme */
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -81,6 +81,18 @@ var EventType = {
     highlightItem: 'highlightItem',
     highlightChoice: 'highlightChoice',
     unhighlightItem: 'unhighlightItem',
+};
+
+var KeyCodeMap = {
+    BACK_KEY: 46,
+    DELETE_KEY: 8,
+    ENTER_KEY: 13,
+    A_KEY: 65,
+    ESC_KEY: 27,
+    UP_KEY: 38,
+    DOWN_KEY: 40,
+    PAGE_UP_KEY: 33,
+    PAGE_DOWN_KEY: 34,
 };
 
 var ObjectsInConfig = ['fuseOptions', 'classNames'];
@@ -739,11 +751,15 @@ var stringToHtmlClass = function (input) {
     }
     return undefined;
 };
-var mapInputToChoice = function (value, allowGroup) {
+var mapInputToChoice = function (value, allowGroup, allowRawString) {
+    if (allowRawString === void 0) { allowRawString = true; }
     if (typeof value === 'string') {
+        var sanitisedValue = sanitise(value);
+        var userValue = allowRawString || sanitisedValue === value ? value : { escaped: sanitisedValue, raw: value };
         var result_1 = mapInputToChoice({
             value: value,
-            label: value,
+            label: userValue,
+            selected: true,
         }, false);
         return result_1;
     }
@@ -3812,6 +3828,7 @@ var Choices = /** @class */ (function () {
     };
     Choices.prototype._loadChoices = function () {
         var _a;
+        var _this = this;
         var config = this.config;
         if (this._isTextElement) {
             // Assign preset items from passed object first
@@ -3820,7 +3837,7 @@ var Choices = /** @class */ (function () {
             if (this.passedElement.value) {
                 var elementItems = this.passedElement.value
                     .split(config.delimiter)
-                    .map(function (e) { return mapInputToChoice(e, false); });
+                    .map(function (e) { return mapInputToChoice(e, false, _this.config.allowHtmlUserInput); });
                 this._presetChoices = this._presetChoices.concat(elementItems);
             }
             this._presetChoices.forEach(function (choice) {
@@ -4079,19 +4096,19 @@ var Choices = /** @class */ (function () {
             }
         }
         switch (keyCode) {
-            case 65 /* KeyCodeMap.A_KEY */:
+            case KeyCodeMap.A_KEY:
                 return this._onSelectKey(event, this.itemList.element.hasChildNodes());
-            case 13 /* KeyCodeMap.ENTER_KEY */:
+            case KeyCodeMap.ENTER_KEY:
                 return this._onEnterKey(event, hasActiveDropdown);
-            case 27 /* KeyCodeMap.ESC_KEY */:
+            case KeyCodeMap.ESC_KEY:
                 return this._onEscapeKey(event, hasActiveDropdown);
-            case 38 /* KeyCodeMap.UP_KEY */:
-            case 33 /* KeyCodeMap.PAGE_UP_KEY */:
-            case 40 /* KeyCodeMap.DOWN_KEY */:
-            case 34 /* KeyCodeMap.PAGE_DOWN_KEY */:
+            case KeyCodeMap.UP_KEY:
+            case KeyCodeMap.PAGE_UP_KEY:
+            case KeyCodeMap.DOWN_KEY:
+            case KeyCodeMap.PAGE_DOWN_KEY:
                 return this._onDirectionKey(event, hasActiveDropdown);
-            case 8 /* KeyCodeMap.DELETE_KEY */:
-            case 46 /* KeyCodeMap.BACK_KEY */:
+            case KeyCodeMap.DELETE_KEY:
+            case KeyCodeMap.BACK_KEY:
                 return this._onDeleteKey(event, this._store.items, this.input.isFocussed);
         }
     };
@@ -4172,13 +4189,7 @@ var Choices = /** @class */ (function () {
                 if (!_this._canCreateItem(value)) {
                     return;
                 }
-                var sanitisedValue = sanitise(value);
-                var userValue = _this.config.allowHtmlUserInput || sanitisedValue === value ? value : { escaped: sanitisedValue, raw: value };
-                _this._addChoice(mapInputToChoice({
-                    value: userValue,
-                    label: userValue,
-                    selected: true,
-                }, false), true, true);
+                _this._addChoice(mapInputToChoice(value, false, _this.config.allowHtmlUserInput), true, true);
                 addedItem = true;
             }
             _this.clearInput();
@@ -4205,8 +4216,8 @@ var Choices = /** @class */ (function () {
         if (hasActiveDropdown || this._isSelectOneElement) {
             this.showDropdown();
             this._canSearch = false;
-            var directionInt = keyCode === 40 /* KeyCodeMap.DOWN_KEY */ || keyCode === 34 /* KeyCodeMap.PAGE_DOWN_KEY */ ? 1 : -1;
-            var skipKey = event.metaKey || keyCode === 34 /* KeyCodeMap.PAGE_DOWN_KEY */ || keyCode === 33 /* KeyCodeMap.PAGE_UP_KEY */;
+            var directionInt = keyCode === KeyCodeMap.DOWN_KEY || keyCode === KeyCodeMap.PAGE_DOWN_KEY ? 1 : -1;
+            var skipKey = event.metaKey || keyCode === KeyCodeMap.PAGE_DOWN_KEY || keyCode === KeyCodeMap.PAGE_UP_KEY;
             var nextEl = void 0;
             if (skipKey) {
                 if (directionInt > 0) {
@@ -4686,7 +4697,7 @@ var Choices = /** @class */ (function () {
             throw new TypeError("".concat(caller, " called for an element which has multiple instances of Choices initialised on it"));
         }
     };
-    Choices.version = '11.0.2';
+    Choices.version = '11.0.3';
     return Choices;
 }());
 
