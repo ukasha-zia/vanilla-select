@@ -1,5 +1,5 @@
 {
-  "name": "choices.js",
+  "name": "vanilla-select",
   "version": "11.0.3",
   "description": "A vanilla JS customisable text input/select box plugin",
   "type": "module",
