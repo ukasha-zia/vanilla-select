@@ -35,6 +35,6 @@ jobs:
         git config --global user.email "${{ github.actor }}@users.noreply.github.com"
         
         git checkout -B pre-built
-        git add -f <path-to-build-folder>  # Replace with actual build output folder
+        git add .  # Replace with actual build output folder
         git commit -m "Auto-generated build"
         git push -u origin pre-built --force
