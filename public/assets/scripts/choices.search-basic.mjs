@@ -751,11 +751,15 @@ var stringToHtmlClass = function (input) {
     }
     return undefined;
 };
-var mapInputToChoice = function (value, allowGroup) {
+var mapInputToChoice = function (value, allowGroup, allowRawString) {
+    if (allowRawString === void 0) { allowRawString = true; }
     if (typeof value === 'string') {
+        var sanitisedValue = sanitise(value);
+        var userValue = allowRawString || sanitisedValue === value ? value : { escaped: sanitisedValue, raw: value };
         var result_1 = mapInputToChoice({
             value: value,
-            label: value,
+            label: userValue,
+            selected: true,
         }, false);
         return result_1;
     }
@@ -3824,6 +3828,7 @@ var Choices = /** @class */ (function () {
     };
     Choices.prototype._loadChoices = function () {
         var _a;
+        var _this = this;
         var config = this.config;
         if (this._isTextElement) {
             // Assign preset items from passed object first
@@ -3832,7 +3837,7 @@ var Choices = /** @class */ (function () {
             if (this.passedElement.value) {
                 var elementItems = this.passedElement.value
                     .split(config.delimiter)
-                    .map(function (e) { return mapInputToChoice(e, false); });
+                    .map(function (e) { return mapInputToChoice(e, false, _this.config.allowHtmlUserInput); });
                 this._presetChoices = this._presetChoices.concat(elementItems);
             }
             this._presetChoices.forEach(function (choice) {
@@ -4184,13 +4189,7 @@ var Choices = /** @class */ (function () {
                 if (!_this._canCreateItem(value)) {
                     return;
                 }
-                var sanitisedValue = sanitise(value);
-                var userValue = _this.config.allowHtmlUserInput || sanitisedValue === value ? value : { escaped: sanitisedValue, raw: value };
-                _this._addChoice(mapInputToChoice({
-                    value: userValue,
-                    label: userValue,
-                    selected: true,
-                }, false), true, true);
+                _this._addChoice(mapInputToChoice(value, false, _this.config.allowHtmlUserInput), true, true);
                 addedItem = true;
             }
             _this.clearInput();
